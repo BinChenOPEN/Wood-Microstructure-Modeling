@@ -7,10 +7,12 @@ This project includes two parts：
 
 ## Key features in the generated microstructure
 - Ray cells are included in the wood structure. For birch, each group includes two columns of ray cells. Regarding to spruce, each group includes a single column of ray cells.  
-- The ray cells will distort the fibers nearby, to mimic the real wood growth.  
+- The ray cells will distort the fibers nearby, to mimic the real wood growth. 
 - The impact of the ray cells in constraint into a small region.  
-- Randomness is applied on fibers, vessels, and ray cells.  
+- Randomness is applied on fibers, vessels, and ray cells.
+- Vessels can be involved in the microstructure. There could be isolated vessels, double-vessel clusters or triple-vessel cluster. 
 - The fibers and vessels are distorted by the distortion map, which influences only the fibers nearby.
+- Of course, the structure without vessel or ray cell can be easily generated.
 - In spruce, the difference between early wood and late wood is simulated. The late fibers are compressed more, with thicker cell walls.
 
 ## Note  
