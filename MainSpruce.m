@@ -1,11 +1,11 @@
 clear, close all, clc,warning('off','all');
 %% set parameters
 % Volume structure size;
-sizeIm    = [1500,1500,750];
+sizeVolume    = [1500,1500,750];
 
-% The volume structrue is slightly enlarged for image interpolation
+% The volume structrue is slightly enlarged for image interpolation. D
 extraSZ   = [200,400,150];
-sizeImEnlarge = sizeIm+extraSZ; % The simulated structure is a bit larger than the expected one.
+sizeImEnlarge = sizeVolume+extraSZ; % The simulated structure is a bit larger than the expected one.
 % The extra region will be removed afterwards.
 SaveFolder = 'SaveSpruce/'; % Folder to save the data
 mkdir(SaveFolder);
@@ -29,7 +29,7 @@ rayCellLength      = 149.4; % ray cell length along radial direction
 rayCell_variance   = 38.5; % ray cell length deviation along radial direction
 % cell end thickness;
 cellEndThick       = 4; % End of cell wall thickness along L direction
-cellThick          = 4; % Cell wall thickness
+cellWallThick      = 4; % Cell wall thickness
 % vessel wall thickness is thicker than general cell wall
 vesselThicker      = 0; % Assume vessel is thicker than ray cells. It could be any value
 rayHeight          = 50.2; % the width of the ray cell
@@ -39,11 +39,11 @@ neighborLocal      = [-1, 0, 1, 0;
 % the grid node number
 rayCellNum         = 8.44; % ray cell count in a group
 rayCellNumStd      = 4.39; % ray cell count in a group
-saveVolumeAs3D        = 1; % 1 or 0. If the volume size is too large. This operation may out of memory.
+saveVolumeAs3D     = 0; % 1 or 0. If the volume size is too large. This operation may out of memory.
 numGridNodes       = length(xGrid(:));
 
 % For data transfer
-Params.sizeIm         = sizeIm;
+Params.sizeIm         = sizeVolume;
 Params.cellR          = cellR;
 Params.xGrid          = xGrid;
 Params.yGrid          = yGrid;
@@ -55,7 +55,7 @@ Params.cellEndThick   = cellEndThick;
 Params.neighborLocal  = neighborLocal;
 Params.rayHeight       = rayHeight;
 Params.sizeImEnlarge  = sizeImEnlarge;
-Params.cellThick      = cellThick;
+Params.cellThick      = cellWallThick;
 Params.gridSize       = [length(xVector),length(yVector)];
 
 
@@ -90,9 +90,9 @@ compress_all_validSub = compress_all_validSub - compress_all_validSub(1)...
     -(compress_all_validSub(end) - compress_all_validSub(1))*(1:sizeImEnlarge(1))'/sizeImEnlarge(1);
 
 figure(1),
-plot(thickerAll_validSub(extraSZ(1)/2+1:sizeIm(1)+extraSZ(1)/2),'linewidth',1);
+plot(thickerAll_validSub(extraSZ(1)/2+1:sizeVolume(1)+extraSZ(1)/2),'linewidth',1);
 hold on,
-plot(compress_all_validSub(extraSZ(1)/2+1:sizeIm(1)+extraSZ(1)/2),'linewidth',1);
+plot(compress_all_validSub(extraSZ(1)/2+1:sizeVolume(1)+extraSZ(1)/2),'linewidth',1);
 axis tight,
 set(gcf,'color','w');
 legend('Cell wall thickness increment','Compression','location','northeast');
@@ -117,7 +117,7 @@ for iSlice = sliceInterest
     yGrid_interp(:,t)     = yGrid(:)+rand(numGridNodes,1)*3-1.5;
     
     thicker_inerp           = thickerAll_validSub(round(xGrid_interp(:,t)));
-    Thickness_interp_ray(:,t) = (cellThick-0.5)*ones(numGridNodes,1)+rand(numGridNodes,1)*1;
+    Thickness_interp_ray(:,t) = (cellWallThick-0.5)*ones(numGridNodes,1)+rand(numGridNodes,1)*1;
     
     Thickness_interp_fiber(:,t) = Thickness_interp_ray(:,t)+thicker_inerp;
 end
@@ -507,19 +507,19 @@ set(gcf,'color','w');
 Folder_FinalVolumeSlice = [SaveFolder,'/FinalVolumeSlice/'];
 mkdir(Folder_FinalVolumeSlice)
 
-for i = round(extraSZ(3)/2)+1:sizeIm(3)+round(extraSZ(3)/2)
+for i = round(extraSZ(3)/2)+1:sizeVolume(3)+round(extraSZ(3)/2)
     imgName = fullfile(Folder_ImgSeries_GlobalDist,FileNameAll{i});
     img = imread(imgName);
     imgName_save = fullfile(Folder_FinalVolumeSlice,FileNameAll{i-round(extraSZ(3)/2)});
-    imwrite(img(round(extraSZ(1)/2)+1:sizeIm(1)+round(extraSZ(1)/2),...
-        round(extraSZ(2)/2)+1:sizeIm(2)+round(extraSZ(2)/2)),imgName_save);
+    imwrite(img(round(extraSZ(1)/2)+1:sizeVolume(1)+round(extraSZ(1)/2),...
+        round(extraSZ(2)/2)+1:sizeVolume(2)+round(extraSZ(2)/2)),imgName_save);
 end
 
 %% Save the center part of the volume
 if saveVolumeAs3D
     Folder_FinalVolume = [SaveFolder,'/FinalVolume3D/'];
     mkdir(Folder_FinalVolume)
-    for i = 1:sizeIm(3)
+    for i = 1:sizeVolume(3)
         imgName = fullfile(Folder_FinalVolumeSlice,FileNameAll{i});
         img = imread(imgName);
         volumeFinal(:,:,i) = img;

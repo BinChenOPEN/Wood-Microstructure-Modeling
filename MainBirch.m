@@ -1,18 +1,18 @@
 clear, close all, clc,warning('off','all');
 %% set parameters
 % Volume structure size;
-sizeIm    = [1500,1500,750];
+sizeVolume    = [1500,1500,750];
 
 % The volume structrue is slightly enlarged for image interpolation
 extraSZ   = [200,400,150];
-sizeImEnlarge = sizeIm+extraSZ; % The simulated structure is a bit larger than the expected one.
+sizeImEnlarge = sizeVolume+extraSZ; % The simulated structure is a bit larger than the expected one.
 % The extra region will be removed afterwards.
-SaveFolder = 'SaveVolume/'; % Folder to save the data
+SaveFolder = 'SaveBirch/'; % Folder to save the data
 mkdir(SaveFolder);
 
 
 % cellwall2radiusRatio  = 1.38/(6.01+1.38);
-cellR              = 20; % The grid distance for the nodes we generated. In Unit of voxels.
+cellR              = 14.5; % The grid distance for the nodes we generated. In Unit of voxels.
                          % It is roughly the radius of the fibers.
 xVector            = 5:cellR:sizeImEnlarge(1)-5; % the grid node points
 yVector            = 5:cellR:sizeImEnlarge(2)-5; % the grid node points
@@ -29,9 +29,9 @@ vesselLengthVariance = 195; % Standard deviation of vessel length
 rayCellLength      = 62; % ray cell length along radial direction
 % ray cell disturbance
 rayCell_variance   = 15; % ray cell length deviation along radial direction
-cellEndThick       = 8;  % End of cell wall thickness along L direction
-cellThick          = 8;  % Cell wall thickness
-withVessel         = 1;  % Include vessels, 1: with vessel, 0: no vessel
+cellEndThick       = 4;  % End of cell wall thickness along L direction
+cellWallThick      = 4;  % Cell wall thickness
+isExistVessel      = 1;  % Include vessels, 1: with vessel, 0: no vessel
 isExistRayCell     = 1;  % Is there any ray cells, 1: exist ray cells; 0: no ray cell
 % vessel wall thickness is thicker than general cell wall, 0 means the
 % sames
@@ -42,8 +42,8 @@ raySpace           = 20; % the space between ray cell along T direction. The dis
 neighborLocal      = [-1,  0, 1, 0;
                        0, -1, 0, 1];
 % the grid node number
-rayCellNum         = 11.33; % ray cell count in a group
-rayCellNumStd      = 3.39;  % ray cell count in a group
+rayCellNum         = 11.33; % ray cell count in a group of ray cells
+rayCellNumStd      = 3.39;  % ray cell count in a group of ray cells
 VesselCount        = 50;   % This number is used to control the vessel number and distribution.
 % Please tune with this parameter
 writeLocalDeformData  = 0; % 1 or 0.
@@ -52,7 +52,7 @@ saveVolumeAs3D        = 1; % 1 or 0. If the volume size is too large. This opera
 numGridNodes          = length(xGrid(:)); % grid node number
 
 % Store all parameters into structure Params
-Params.sizeIm         = sizeIm;
+Params.sizeIm         = sizeVolume;
 Params.cellR          = cellR;
 Params.xGrid          = xGrid;
 Params.yGrid          = yGrid;
@@ -64,7 +64,7 @@ Params.cellEndThick   = cellEndThick;
 Params.neighborLocal  = neighborLocal;
 Params.rayHeight      = raywHeight;
 Params.sizeImEnlarge  = sizeImEnlarge;
-Params.cellThick      = cellThick;
+Params.cellThick      = cellWallThick;
 Params.gridSize       = [length(xVector),length(yVector)];
 
 %%
@@ -78,7 +78,7 @@ for iSlice = sliceInterest
     xGrid_interp(:,t)     = xGrid(:)+rand(numGridNodes,1)*3-1.5;
     yGrid_interp(:,t)     = yGrid(:)+rand(numGridNodes,1)*3-1.5;
     % A little bit randomness is included in the cell wall thickness.
-    Thickness_interp(:,t) = (cellThick-0.5)*ones(numGridNodes,1)+rand(numGridNodes,1)*1;
+    Thickness_interp(:,t) = (cellWallThick-0.5)*ones(numGridNodes,1)+rand(numGridNodes,1)*1;
 end
 
 % Interp the grid nodes location and thickness for all slices using spline
@@ -224,7 +224,7 @@ Vessel_all = Vessel_all_extend;
 % two conditions
 m = 0;
 Vessel =[];
-if withVessel
+if isExistVessel
     for i = 1:length(Vessel_all)
         t = 0;
         if isExistRayCell
@@ -674,13 +674,12 @@ if writeLocalDeformData
 end
 %% Impose local distortion by image interpolation
 parfor (z = 1:sizeImEnlarge(3),4)
-    % for z = 1:sizeImEnlarge(3)
     imgName = fullfile(Folder_ImgSeries,FileNameAll{z});
     ImCover = double(imread(imgName));
     [x_grid,y_grid]      = ndgrid(1:sizeImEnlarge(1),1:sizeImEnlarge(2));
     if isExistRayCell
         v_all_raycell = rayCell_shrinking(...
-            Params,yVector,sizeImEnlarge,raycellWidth,raycellXindAll_update,v,raywHeight,cellR-cellThick/2,z);
+            Params,yVector,sizeImEnlarge,raycellWidth,raycellXindAll_update,v,raywHeight,cellR-cellWallThick/2,z);
         x_interp = x_grid+u;
         y_interp = y_grid+v+v_all_raycell;
     else
@@ -796,19 +795,19 @@ set(gcf,'color','w');
 Folder_FinalVolumeSlice = [SaveFolder,'/FinalVolumeSlice/'];
 mkdir(Folder_FinalVolumeSlice)
 
-for i = round(extraSZ(3)/2)+1:sizeIm(3)+round(extraSZ(3)/2)
+for i = round(extraSZ(3)/2)+1:sizeVolume(3)+round(extraSZ(3)/2)
     imgName = fullfile(Folder_ImgSeries_GlobalDist,FileNameAll{i});
     img = imread(imgName);
     imgName_save = fullfile(Folder_FinalVolumeSlice,FileNameAll{i-round(extraSZ(3)/2)});
-    imwrite(img(round(extraSZ(1)/2)+1:sizeIm(1)+round(extraSZ(1)/2),...
-        round(extraSZ(2)/2)+1:sizeIm(2)+round(extraSZ(2)/2)),imgName_save);
+    imwrite(img(round(extraSZ(1)/2)+1:sizeVolume(1)+round(extraSZ(1)/2),...
+        round(extraSZ(2)/2)+1:sizeVolume(2)+round(extraSZ(2)/2)),imgName_save);
 end
 
 %% Save the center part of the volume
 if saveVolumeAs3D
     Folder_FinalVolume = [SaveFolder,'/FinalVolume3D/'];
     mkdir(Folder_FinalVolume)
-    for i = 1:sizeIm(3)
+    for i = 1:sizeVolume(3)
         imgName = fullfile(Folder_FinalVolumeSlice,FileNameAll{i});
         img = imread(imgName);
         volumeFinal(:,:,i) = img;
