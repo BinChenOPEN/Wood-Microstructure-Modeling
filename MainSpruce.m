@@ -1,7 +1,7 @@
 clear, close all, clc,warning('off','all');
 %% set parameters
 % Volume structure size;
-sizeIm    = [1000,1000,750];
+sizeIm    = [1500,1500,750];
 
 % The volume structrue is slightly enlarged for image interpolation
 extraSZ   = [200,400,150];
