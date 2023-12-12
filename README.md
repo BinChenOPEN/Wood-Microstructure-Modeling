@@ -33,10 +33,9 @@ The generated structure is saved in subfolder `FinalVolumeSlice`. The 3D volume 
 
 ## Results
 Here it is a generated microstructure of birch  
-![Birch](https://github.com/cbbuaa/Wood-Microstructure-Modeling/blob/main/Figure/Birch.png)  
+![Birch](/Figure/Birch.png)  
 Here it is a generated microstructure of Spruce  
-![image](https://github.com/cbbuaa/Wood-Microstructure-Modeling/blob/main/Figure/Spruce.png)  
-
+![image](/Figure/Spruce.png) 
 
 ## Citation
 [Chen, Bin, et al. "A distortion-map-based method for morphology generation in multi-phase materials-application to wood." Composites Science and Technology 244 (2023): 110262.](https://www.sciencedirect.com/science/article/pii/S0266353823003561)
