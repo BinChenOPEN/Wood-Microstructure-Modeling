@@ -29,6 +29,8 @@ If you want to quickly run the projects. **Here are some notes**:
 - `isExistRayCell` is used to control whether there is any ray cell in the structure.
 - `isExistVessel` is used to control whether there is any vessel in the structure.
 
+The generated structure is saved in subfolder `FinalVolumeSlice`. The 3D volume is save as a set of 2D slices.
+
 ## Results
 Here it is a generated microstructure of birch  
 ![Birch](https://github.com/cbbuaa/Wood-Microstructure-Modeling/assets/23333414/5cc4806e-52ec-46e0-888a-ccaa9a74a855)  
