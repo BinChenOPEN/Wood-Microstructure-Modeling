@@ -33,9 +33,9 @@ The generated structure is saved in subfolder `FinalVolumeSlice`. The 3D volume 
 
 ## Results
 Here it is a generated microstructure of birch  
-![Birch](https://github.com/cbbuaa/Wood-Microstructure-Modeling/assets/23333414/5cc4806e-52ec-46e0-888a-ccaa9a74a855)  
+![Birch](https://github.com/cbbuaa/Wood-Microstructure-Modeling/blob/main/Figure/Birch.png)  
 Here it is a generated microstructure of Spruce  
-![image](https://github.com/cbbuaa/Wood-Microstructure-Modeling/assets/23333414/15b9ab1c-c080-4141-93d7-3b4862555be2)  
+![image](https://github.com/cbbuaa/Wood-Microstructure-Modeling/blob/main/Figure/Spruce.png)  
 
 
 ## Citation
