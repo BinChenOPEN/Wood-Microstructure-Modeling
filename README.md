@@ -19,9 +19,9 @@ This project includes two parts：
 The generation is time-consuming for large wood structure generation. Parallel computation using a multi-core CPU is used to speed up the computation. We tried to reduce the requirement of the memory size. In our application, $3000\^3$ voxels volume image can be generated with 32GB RAM. A larger structure needs more memory. The computation also requires saving and loading large amounts of data. Therefore, SSD is recommended.
 
 ## Usage
-Download the project and save it into a selected folder. 
-Read the notation of the parameters in the Matlab scripts. 
-If you want to quickly run the projects. **Here are some notes**:  
+Download the project and save it into a selected folder.  
+Read the notation of the parameters in the Matlab scripts.  
+If you want to quickly run the projects. **Here are some notes**:   
 - `cellWallThick` is should not be too small. We recommend using value larger than 3   
 - `sizeVolume` should not be too small in order to include the ray cell features in the volume. I recommend to start with 1500 $\times$ 1500 $\times$ 750 as a start.   
 - `cellR` is an important variable. It is roughly the radius of the fiber.  
