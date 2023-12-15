@@ -37,6 +37,9 @@ Here it is a generated microstructure of birch
 Here it is a generated microstructure of Spruce  
 ![Spruce](Figure/Spruce.png) 
 
+## Contact
+Email: binchen@kth.se
+
 ## Citation
-[Chen, Bin, et al. "A distortion-map-based method for morphology generation in multi-phase materials-application to wood." Composites Science and Technology 244 (2023): 110262.](https://www.sciencedirect.com/science/article/pii/S0266353823003561)
-Contact: binchen@kth.se
+[Chen, Bin, et al. "A distortion-map-based method for morphology generation in multi-phase materials-application to wood." Composites Science and Technology 244 (2023): 110262.](https://www.sciencedirect.com/science/article/pii/S0266353823003561)  
+
