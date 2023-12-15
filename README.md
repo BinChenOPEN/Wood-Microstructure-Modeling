@@ -41,5 +41,6 @@ Here it is a generated microstructure of Spruce
 Email: binchen@kth.se
 
 ## Citation
+Please cite our work if you use any code in this project:  
 [Chen, Bin, et al. "A distortion-map-based method for morphology generation in multi-phase materials-application to wood." Composites Science and Technology 244 (2023): 110262.](https://www.sciencedirect.com/science/article/pii/S0266353823003561)  
 
