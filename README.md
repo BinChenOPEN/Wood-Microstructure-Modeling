@@ -1,6 +1,6 @@
 # Wood-Microstructure-Modeling
 ## Summary
-This project generates realistic wood (Birch, Spruce, etc.) microstructures from a set of given parameters 
+This project generates realistic wood (Birch, Spruce, etc.) microstructures from a set of given parameters  
 This project includes two parts：
 1. **Birch microstructure generation;**
 2. **Spruce microstructure generation;**
