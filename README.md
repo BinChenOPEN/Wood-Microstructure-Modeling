@@ -31,13 +31,12 @@ If you want to quickly run the projects. **Here are some notes**:
 
 The generated structure is saved in subfolder `FinalVolumeSlice`. The 3D volume is save as a set of 2D slices.
 
-## Results display
-Some tools can be used to display and render the generated wood microstructure, such as [Matlab Volume Viewer app](https://se.mathworks.com/help/images/ref/volumeviewer-app.html)
-
 ## Results
-Here it is a generated microstructure of birch  
+Some tools can be used to display and render the generated wood microstructure, such as [Matlab Volume Viewer app](https://se.mathworks.com/help/images/ref/volumeviewer-app.html), [Slicer](https://www.slicer.org), [Image](https://imagej.net/ij/download.html), Commerical software [Avizo](https://www.thermofisher.com/se/en/home/electron-microscopy/products/software-em-3d-vis/avizo-software.html?cid=msd_vds_sbu_xmkt_swa_1153505_emea_pso_gaw_d3hvf9&gad_source=1&gclid=CjwKCAiA-P-rBhBEEiwAQEXhHwel6s1VM3CGODlaZ6kGIRbEP4hFgfZdMmgF5WTATLuYYWa3-NQYXBoC1PgQAvD_BwE).
+
+A generated microstructure of birch  
 ![Birch](Figure/Birch.png)  
-Here it is a generated microstructure of Spruce  
+A generated microstructure of Spruce  
 ![Spruce](Figure/Spruce.png) 
 
 ## Contact
