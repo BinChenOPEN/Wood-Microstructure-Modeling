@@ -21,7 +21,7 @@ The generation is time-consuming for large wood structure generation. Parallel c
 ## Usage
 Download the project and save it into a selected folder.  
 Read the notation of the parameters in the Matlab scripts.  
-RUN `MainBirch.m` or `MainSpruce.m' after setting the parameters.    
+RUN `MainBirch.m` or `MainSpruce.m` after setting the parameters.    
 If you want to quickly run the projects. **Here are some notes**:   
 - `cellWallThick` is should not be too small. We recommend using value larger than 3   
 - `sizeVolume` should not be too small in order to include the ray cell features in the volume. I recommend to start with 1500 $\times$ 1500 $\times$ 750 as a start.   
