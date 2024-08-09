@@ -1,5 +1,5 @@
 function [v_all] = rayCell_shrinking(...
-    Params,yVector,sizeImEnlarge,raycellWidth,raycellXindAll,v,raywidth,raysize,indxZ)
+    Params,yVector,sizeImEnlarge,raycellWidth,raycellXindAll,v,rayHeight,raysize,indxZ)
 % ThiS function is used to compress the ray cell regions
 xGrid_all = Params.xGrid_all;
 yGrid_all = Params.yGrid_all;
@@ -18,15 +18,22 @@ thick_node_grid = reshape(Thickness_slice,Params.gridSize);
 raycellXindUnique = unique(raycellXindAll);
 % raycellXindUniqueNum = hist(raycellXindAll,unique(raycellXindAll));
 
-
+for i = 1:length(raycellXindUnique)
+    num_ray_cell_group(i) = length(find(raycellXindUnique(i)==raycellXindAll));
+end
 
 k = 0;
 for i = 1:length(raycellXindUnique)
+
     coeff1 = ones(1,sizeImEnlarge(3));
     coeff2 = zeros(1,sizeImEnlarge(3));
     v1 = zeros(sizeImEnlarge(1:2));
     v2 = zeros(sizeImEnlarge(1:2));
-%     for t = 1:raycellXindUnique(i)
+    
+    indcator = [];
+    v2_all = [];
+    v1_all = [];
+    for t = 1:num_ray_cell_group(i)
         k = k+1;
         v_all_temp  = zeros(sizeImEnlarge(1),sizeImEnlarge(2),length(indxZ));
         
@@ -65,7 +72,7 @@ for i = 1:length(raycellXindUnique)
         
         
         minIndx1 = max(1,round(min(raycellWidth{k})+1*raysize));
-        maxIndx1 = min(round(max(raycellWidth{k})+raywidth-1*raysize),sizeImEnlarge(3));
+        maxIndx1 = min(round(max(raycellWidth{k})+rayHeight-1*raysize),sizeImEnlarge(3));
         if maxIndx1-minIndx1>10
             indx1 = minIndx1:maxIndx1;
         else
@@ -88,8 +95,8 @@ for i = 1:length(raycellXindUnique)
             indx3 = [];
         end
         
-        minIndx4 = max(1,round(max(raycellWidth{k})+raywidth-1*raysize));
-        maxIndx4 = min(round(max(raycellWidth{k})+raywidth+3*raysize),sizeImEnlarge(3));
+        minIndx4 = max(1,round(max(raycellWidth{k})+rayHeight-1*raysize));
+        maxIndx4 = min(round(max(raycellWidth{k})+rayHeight+3*raysize),sizeImEnlarge(3));
         if maxIndx4 - minIndx4 >10
             indx4 = minIndx4: maxIndx4;
         else
@@ -119,14 +126,26 @@ for i = 1:length(raycellXindUnique)
             v2(j,1:ycenter(j)-R(j)) = temp2_1(j,1:ycenter(j)-R(j)) ;
             v2(j,ycenter(j)+R(j):end) = temp2_2(j,ycenter(j)+R(j):end);
         end
-%     end
+        v2_all{t} = v2;
+        v1_all{t} = v1;
+    % end
     
-    for j = 1:length(indxZ)
-        v_all_temp(:,:,j) = v_all_temp(:,:,j)+coeff1(indxZ(j)).*v1+coeff2(indxZ(j)).*v2;
+    % this indicator aims to handle the issue that there may have multiple
+    % ray cell groups along z direction.
+    if indxZ<maxIndx4 & indxZ>minIndx1
+        indcator(t) = 1;
+    else
+        indcator(t) = 0;
     end
-    u_all_structure{i} = v_all_temp;
+
+    end
+    for j = 1:length(indxZ)
+        [~,indx_sort] = sort(indcator,'descend');
+        v_all_temp(:,:,j) = v_all_temp(:,:,j)+coeff1(indxZ(j)).*v1_all{indx_sort(1)}+coeff2(indxZ(j)).*v2_all{indx_sort(1)};
+    end
+    v_all_structure{i} = v_all_temp;
 end
 v_all  = zeros(sizeImEnlarge(1),sizeImEnlarge(2),length(indxZ));
 for i = 1:length(raycellXindUnique)
-    v_all = v_all + u_all_structure{i};
+    v_all = v_all + v_all_structure{i};
 end

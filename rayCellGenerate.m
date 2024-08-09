@@ -60,7 +60,7 @@ for i_raycolumn = raycellXind
 
             cell_center    = [(1:length(yInterp2_C))',round(yInterp2_C(:)+yInterp1_C(:))/2,...
                     repmat((max(1,k)+min(k+rayHeight,sizeImEnlarge(3)))/2,length(yInterp2_C),1)];
-            cell_r         = [(yInterp2_C(:)-yInterp1_C(:))/2,repmat((min(k+rayHeight,sizeImEnlarge(3))-max(1,k))/2,length(yInterp2_C),1)];
+            cell_r         = [(yInterp2_C(:)-yInterp1_C(:))/2,repmat((min(k+rayHeight,sizeImEnlarge(3))-max(1,k))/2,length(yInterp2_C),1)]+0.5;
             
             vesselEndLoc_column = vesselEndLoc+round(mod(m2,2)*rayCellLength/2);
             if vesselEndLoc_column(i_rayrow+1)<=sizeImEnlarge(1)-1 && vesselEndLoc_column(i_rayrow)>= 2
@@ -77,7 +77,7 @@ for i_raycolumn = raycellXind
                     
                 else
                     if i_rayrow == length(vesselEndLoc)-1
-                        i_valid = vesselEndLoc_column(i_rayrow)+cellEndThick/2-1:vesselEndLoc_column(i_rayrow+1)-cellEndThick;
+                        i_valid = vesselEndLoc_column(i_rayrow)+cellEndThick/2-1:vesselEndLoc_column(i_rayrow+1)-cellEndThick/2;
                     else
                         i_valid = vesselEndLoc_column(i_rayrow)+cellEndThick/2-1:vesselEndLoc_column(i_rayrow+1)-cellEndThick/2;
                     end
@@ -103,22 +103,45 @@ for i_raycolumn = raycellXind
                     end
                     
                     if find(round(i_valid) == i)
+
                         for j = cell_neighPt(2,1):cell_neighPt(2,2)
                             for s = cell_neighPt(3,1):cell_neighPt(3,2)
-                                if (j-cell_center(i,2))^2/(cell_r(i,1)-thickInterp_C(i))^2 ...
-                                            + (s-cell_center(i,3))^2/(cell_r(i,2)-thickInterp_C(i))^2 <1
-                                            volImgRef_final(i,j,s) = 0;
-                                else
-                                    if ((j-cell_center(i,2))^2/(cell_r(i,1)-thickInterp_C(i)*2/3)^2 ...
-                                            + (s-cell_center(i,3))^2/(cell_r(i,2)-thickInterp_C(i))^2) >=1 ...
-                                        && ((j-cell_center(i,2))^2/(cell_r(i,1))^2 ...
-                                            + (s-cell_center(i,3))^2/(cell_r(i,2))^2) <=1
-                                        volImgRef_final(i,j,s) = 255;
-                                    end
+                                inner_elipse = (j-cell_center(i,2)).^2./(cell_r(i,1)-thickInterp_C(i))^2 ...
+                                            + (s-cell_center(i,3)).^2./(cell_r(i,2)-thickInterp_C(i)).^2;
 
+                                outer_elipse = (j-cell_center(i,2)).^2./(cell_r(i,1)).^2 ...
+                                            + (s-cell_center(i,3)).^2./(cell_r(i,2)).^2;
+                                
+                                if outer_elipse<1
+                                    volImgRef_final(i,j,s) = uint8(1./(1+exp(-(inner_elipse-1)/0.05))*255);
                                 end
+
+                                % if (j-cell_center(i,2))^2/(cell_r(i,1)-thickInterp_C(i))^2 ...
+                                %             + (s-cell_center(i,3))^2/(cell_r(i,2)-thickInterp_C(i))^2 <1
+                                %             volImgRef_final(i,j,s) = 0;
+                                % else
+                                %     if ((j-cell_center(i,2))^2/(cell_r(i,1)-thickInterp_C(i)*2/3)^2 ...
+                                %             + (s-cell_center(i,3))^2/(cell_r(i,2)-thickInterp_C(i))^2) >=1 ...
+                                %         && ((j-cell_center(i,2))^2/(cell_r(i,1))^2 ...
+                                %             + (s-cell_center(i,3))^2/(cell_r(i,2))^2) <=1
+                                %         volImgRef_final(i,j,s) = 255;
+                                %     end
+                                % 
+                                % end
                             end
                         end
+
+                        % [j_grid,s_grid] = ndgrid(cell_neighPt(2,1):cell_neighPt(2,2),cell_neighPt(3,1):cell_neighPt(3,2));
+                        % 
+                        % inner_elipse = (j_grid-cell_center(i,2)).^2./(cell_r(i,1)-thickInterp_C(i))^2 ...
+                        %                     + (s_grid-cell_center(i,3)).^2./(cell_r(i,2)-thickInterp_C(i)).^2;
+                        % 
+                        % outer_elipse = (j_grid-cell_center(i,2)).^2./(cell_r(i,1)).^2 ...
+                        %                     + (s_grid-cell_center(i,3)).^2./(cell_r(i,2)).^2;
+                        % 
+                        % volImgRef_final(i,cell_neighPt(2,1):cell_neighPt(2,2),cell_neighPt(3,1):cell_neighPt(3,2)) =...
+                        %     uint8(1./(1+exp(-(inner_elipse-1)/0.05))*255);
+
                     end
                 end
 

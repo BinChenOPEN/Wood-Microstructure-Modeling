@@ -29,6 +29,7 @@ If you want to quickly run the projects. **Here are some notes**:
 `extraSZ` works well in most of the cases with the default values. If the obtained final structure in the final subfolder  `FinalVolumeSlice` includes some white boundary, you can increase this value a bit. 
 - `isExistRayCell` is used to control whether there is any ray cell in the structure.
 - `isExistVessel` is used to control whether there is any vessel in the structure.
+- **Important parameters** are the vector `k = [k1,k2,k3,k4]`. `k1>k2` and `k1` should also close to `k2`. These paramerter will govern the distortion extent of the structures. To visulize the impact of these parameters, please see the distortion map in script `plot_distortionMap.m`.
 
 The generated structure is saved in subfolder `FinalVolumeSlice`. The 3D volume is save as a set of 2D slices.
 

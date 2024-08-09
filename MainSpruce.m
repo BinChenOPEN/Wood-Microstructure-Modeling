@@ -1,38 +1,52 @@
 clear, close all, clc,warning('off','all');
 %% set parameters
-% Volume structure size;
-sizeVolume    = [1500,1500,750];
 
-% The volume structrue is slightly enlarged for image interpolation. D
-extraSZ   = [200,400,150];
+%%------------------------------------------------------------%%
+% KEY: In section: Add complicated deformation to the volume image
+% The parameter vector k = []; should be set carefully. Especially those
+% for "Deform small cells". For smaller cellR, this amplitude and influence
+% region should all be smaller. To check how the parameter vector affect
+% the distortion map, please plot the distortion map using script
+% plot_distortionMap.m. If you didn't change k, the results might be super
+% wired.
+
+% Smaller cellR generally also denotes smaller cellEndThick and
+% cellWallThick, rayCellLength, rayCellLength, rayHeight, PeriodParameter
+
+% Volume structure size;
+sizeVolume    = [300,300,300];
+
+% The volume structrue is slightly enlarged for image interpolation. It
+% should be larger for larger volume structure size
+extraSZ   = [100,150,100];
 sizeImEnlarge = sizeVolume+extraSZ; % The simulated structure is a bit larger than the expected one.
 % The extra region will be removed afterwards.
 SaveFolder = 'SaveSpruce/'; % Folder to save the data
 mkdir(SaveFolder);
 
 
-cellR              = 37.75; % The grid distance for the nodes we generated. In Unit of voxels.
+cellR              = 14.5; % The grid distance for the nodes we generated. In Unit of voxels.
 % It is roughly the radius of the fibers.
 xVector            = 5:cellR:sizeImEnlarge(1)-5; % the grid node points
 yVector            = 5:cellR:sizeImEnlarge(2)-5; % the grid node points
 [xGrid, yGrid]     = ndgrid(xVector,yVector);
 cellLength         = 4877; % Average fiber length
 cellLengthVariance = 1219; % Standard deviation of fiber length
-vesselLength         = 4877; % Standard deviation of vessel length
+vesselLength       = 4877; % Standard deviation of vessel length
 vesselLengthVariance = 1219; % Standard deviation of vessel length
-sliceInterestSpace   = 100; % We generate one slice every 100 slice.
+sliceInterestSpace = 100; % We generate one slice every 100 slice.
 % Along L direction, the intensity is interpolated from these slices
-PeriodParameter      = 1000; % This parameter is related to the period of the year ring size
+PeriodParameter    = 1000; % This parameter is related to the period of the year ring size
 % ray cell basic length
 rayCellLength      = 149.4; % ray cell length along radial direction
 % ray cell disturbance
 rayCell_variance   = 38.5; % ray cell length deviation along radial direction
 % cell end thickness;
-cellEndThick       = 4; % End of cell wall thickness along L direction
-cellWallThick      = 4; % Cell wall thickness
+cellEndThick       = 2; % End of cell wall thickness along L direction
+cellWallThick      = 3; % Cell wall thickness
 % vessel wall thickness is thicker than general cell wall
 vesselThicker      = 0; % Assume vessel is thicker than ray cells. It could be any value
-rayHeight          = 50.2; % the width of the ray cell
+rayHeight          = 40; % the width of the ray cell
 % four neighbor grids. Do not change here
 neighborLocal      = [-1, 0, 1, 0;
     0, -1, 0, 1];
@@ -43,17 +57,17 @@ saveVolumeAs3D     = 0; % 1 or 0. If the volume size is too large. This operatio
 numGridNodes       = length(xGrid(:));
 
 % For data transfer
-Params.sizeIm         = sizeVolume;
-Params.cellR          = cellR;
-Params.xGrid          = xGrid;
-Params.yGrid          = yGrid;
+Params.sizeIm      = sizeVolume;
+Params.cellR       = cellR;
+Params.xGrid       = xGrid;
+Params.yGrid       = yGrid;
 % Params.cellLengthDist = cellLengthDist;
 Params.cellLength     = cellLength;
 Params.rayCellLength  = rayCellLength;
 Params.rayCell_variance  = rayCell_variance;
 Params.cellEndThick   = cellEndThick;
 Params.neighborLocal  = neighborLocal;
-Params.rayHeight       = rayHeight;
+Params.rayHeight      = rayHeight;
 Params.sizeImEnlarge  = sizeImEnlarge;
 Params.cellThick      = cellWallThick;
 Params.gridSize       = [length(xVector),length(yVector)];
@@ -68,7 +82,7 @@ for i = 1:20
     % Cell wall thickness distribution is different in early wood and late
     % wood
     featureSize1 = round(PeriodParameter+PeriodParameter*rand(1)); % The size of a year ring is roughly controled by this
-    thickAmptitude = (12+6*rand(1)); % Control the amptitude of the cell wall thickness.
+    thickAmptitude = cellR/2*(1+0.5*rand(1)); % Control the amptitude of the cell wall thickness.
     thicker1 = thickAmptitude/featureSize1^4*(round(0.4*featureSize1):featureSize1)'.^4; % They are added to the original one
     thicker1 = thicker1-thicker1(1);
     thickerAll = [thickerAll;thicker1];
@@ -76,7 +90,7 @@ for i = 1:20
     % The fiber size is different in early wood and late wood. Their size
     % can be controled by applying a compression to the whole field. The
     % compression is designed
-    k         = 0.6/3*featureSize1; % Change this value to control the extent of compression
+    k         = cellR/1.5/3*featureSize1/14.5; % Change this value to control the extent of compression
     compress  = -k/featureSize1^3*(round(0.4*featureSize1):featureSize1)'.^3; % Control the extent of fiber compression in different regions
     compress  = compress + Temp - compress(1);
     compress_all = [compress_all;compress];
@@ -99,7 +113,7 @@ legend('Cell wall thickness increment','Compression','location','northeast');
 legend('boxoff');
 xlabel('R coordinate (voxels)');
 ylabel('Y (voxels)');
-ylim([-40,30])
+% ylim([-40,30])
 set(gca,'fontsize',12),
 saveas(gcf,[SaveFolder,'ThickDistribution'],'epsc');
 
@@ -158,8 +172,8 @@ if 0
 end
 
 % location of ray cells along T direction.
-raycell_linspace = 9:10:length(xVector)-8;
-raycellXindAll = raycell_linspace+rand(1,length(raycell_linspace))*10-5;
+raycell_linspace = linspace(8,length(yVector)-7,round((length(yVector)-15)/10));
+raycellXindAll = raycell_linspace+rand(1,length(raycell_linspace))*6-3;
 raycellXindAll = floor(raycellXindAll./2)*2+1;
 
 % Specify the location of the vessels. The vessels should only be given at
@@ -181,6 +195,8 @@ volImgRef = 255*ones(sizeImEnlarge,'uint8');
 t = 0;
 s = 0;
 raycellWidth = [];
+keepRayCell = [];
+raycellXindAll_update = [];
 % raycellXindAll means the ray cell group index along y dirction
 for i = 1:length(raycellXindAll)
     
@@ -226,12 +242,49 @@ for i = 1:length(raycellXindAll)
         end
     end
 end
-% Generate small cells.
-t = 0;
-skipFiberColumn = [raycellXindAll,raycellXindAll+1];
 
+% Generate small cells.
+SkipFibre = [];
+if ~isempty(keepRayCell)
+    skipFiberColumn = [raycellXindAll(squeeze(keepRayCell)),raycellXindAll(squeeze(keepRayCell))+1];
+else
+    skipFiberColumn = [];
+end
+
+raycellXind_all_vec = [];
+if length(raycellWidth) >= 1
+    for t = 1:length(raycellXind_all)
+        raycellXind_all_vec = [raycellXind_all_vec,raycellXind_all{t}];
+    end
+end
+
+
+t = 0;
+exp_elipse_2 = zeros(length(xVector)-2,length(yVector)-2);
 for i = 2:2:length(xVector)-2
     for j = 2:2:length(yVector)-2
+        if isempty(find(skipFiberColumn == j))
+        if min(abs(j-raycellXind_all_vec)) <=4
+            is_close_to_ray = 1;
+        else
+            is_close_to_ray = 0;
+        end
+        
+
+        if min(abs(j-raycellXind_all_vec)) <=8
+            is_close_to_ray_far = 1;
+        else
+            is_close_to_ray_far = 0;
+        end
+
+        if isempty(raycellXind_all_vec)
+            is_close_to_ray = 0;
+        end
+
+        if isempty(raycellXind_all_vec)
+            is_close_to_ray_far = 0;
+        end
+
         if isempty(find(skipFiberColumn == j))
             t = t+1;
             
@@ -292,23 +345,36 @@ for i = 2:2:length(xVector)-2
                 [regionCellx,regionCelly] = ndgrid(regionCellindx,regionCellindy);
                 
                 % External contour
-                inElipse1      = (regionCellx-C_elipse(3)).^4./C_elipse(1)^4 + (regionCelly-C_elipse(4)).^4./C_elipse(2)^4;
+                    
+                exp_elipse_1 =4;
+                inElipse1      = abs((regionCellx-C_elipse(3))).^exp_elipse_1./abs(C_elipse(1))^exp_elipse_1 + abs((regionCelly-C_elipse(4))).^exp_elipse_1./abs(C_elipse(2))^exp_elipse_1;
                 % Internal contour
-                inElipse2      = (regionCellx-C_elipse(3)).^4./(C_elipse(1)-Thickness_all_fiber(ind,iSlice)-skipCellThick).^4 + ...
-                    (regionCelly-C_elipse(4)).^4./(C_elipse(2)-Thickness_all_fiber(ind,iSlice)-skipCellThick).^4;
+                if exp_elipse_2(i,j) == 0
+                    if is_close_to_ray
+                        exp_elipse_2(i,j) = 5+round(rand(1)*2);
+                    else
+                        if rand(1)<0.8
+                            exp_elipse_2(i,j) = 3+round(rand(1)*2);
+                        else
+                           exp_elipse_2(i,j) = 5+round(rand(1)*2);
+                        end
+                    end
+                end
+                inElipse2      = abs((regionCellx-C_elipse(3))).^exp_elipse_2(i,j)./abs((C_elipse(1)-Thickness_all_fiber(ind,iSlice)-skipCellThick)).^exp_elipse_2(i,j) + ...
+                        abs((regionCelly-C_elipse(4))).^exp_elipse_2(i,j)./abs((C_elipse(2)-Thickness_all_fiber(ind,iSlice)-skipCellThick)).^exp_elipse_2(i,j);
                 %                 regionCell     = zeros(length(regionCellindx),length(regionCellindy));
-                regionCell     = ones(length(regionCellindx),length(regionCellindy),'uint8');
+                regionCell     = ones(length(regionCellindx),length(regionCellindy),'double');
                 if isempty(find(iSlice==fiberEnd))
                     % if this slice is not the end of this cell
                     % inside the lumen, it should be black
-                    regionCell(find((inElipse2<=1))) = 0;
+                    regionCell = 1./(1+exp(-(inElipse2-1)/0.05));
                 else
                     % if this slice is the end of this cell,
                     % all points should be white
                 end
-                volImgRef(regionCellindx,regionCellindy,iSlice) = volImgRef(regionCellindx,regionCellindy,iSlice).*regionCell;
+                volImgRef(regionCellindx,regionCellindy,iSlice) = uint8(double(volImgRef(regionCellindx,regionCellindy,iSlice)).*regionCell);
             end
-            
+        end
         end
     end
 end
@@ -357,6 +423,27 @@ v1     = zeros(sizeImEnlarge(1:2));
 t      = 0;
 for i = 2:2:length(xVector)-1
     for j = 2:2:length(yVector)-1
+        if min(abs(j-raycellXind_all_vec)) <=4
+            is_close_to_ray = 1;
+        else
+            is_close_to_ray = 0;
+        end
+
+        if min(abs(j-raycellXind_all_vec)) <=8
+            is_close_to_ray_far = 1;
+        else
+            is_close_to_ray_far = 0;
+        end
+
+
+        if isempty(raycellXind_all_vec)
+            is_close_to_ray = 0;
+        end
+
+        if isempty(raycellXind_all_vec)
+            is_close_to_ray_far = 0;
+        end
+        
         t = t+1;
         i1 = i;
         pointCoord = [];
@@ -366,39 +453,54 @@ for i = 2:2:length(xVector)-1
         end
         ind  = length(xVector)*(j-1)+i1;
         
-        % Small cells
+        % Deform small cells
         islarge    = 0;
         indxPt     = length(xVector)*(j-1)+i1;
         pointCoord = [xGrid_all(indxPt,1),yGrid_all(indxPt,1)];
         
         %----------the value here are super important-------------%
-        k          = [0.1,0.08,1.5+rand(1),3+3*rand(1)];
-        
+        k          = [0.1,0.08,2,8+rand(1)*10];
+
         u_temp     = localDistort(x,y,pointCoord(1),pointCoord(2),k);
         
         %----------the value here are super important-------------%
-        k          = [0.1,0.08,1.5+rand(1),2*(1+rand(1))];
+        if is_close_to_ray
+            % k          = [0.05,0.04,2,3+rand(1)*3];
+            k          = [0.1,0.08,2,2+rand(1)*2];
+        else
+            
+            % k          = [0.05,0.04,2,6+rand(1)*15];
+            k          = [0.1,0.08,2,6+rand(1)*9];
+        end
         
-        v_temp     = localDistort(y,x,pointCoord(1),pointCoord(2),k);
+        v_temp     = localDistort(y,x,pointCoord(2),pointCoord(1),k);
         
-        u          = u + sign(randn(1))*u_temp;
+        u          = u + u_temp;
         v          = v + v_temp;
         
-        if rand(1)<1/100
+        if rand(1)<1/15
             % Deform for a large regions
             islarge    = 1;
             indxPt     = length(xVector)*(j-1)+i1;
             pointCoord = [xGrid_all(indxPt,1),yGrid_all(indxPt,1)];
             
             %----------the value here are super important-------------%
-            k          = [0.015,0.01,3*(1+0.5*rand(1)),1.5*(1+1*rand(1))];
+            if is_close_to_ray_far
+                k      = [0.04,0.03,1+1*rand(1),0.5*(1+1*rand(1))];
+            else
+                k      = [0.04,0.03,1+1*rand(1),1.5*(1+1*rand(1))];
+            end
             u_temp     = localDistort(x,y,pointCoord(1),pointCoord(2),k);
-            u1          = u1 + sign(randn(1))*u_temp;
+            u1         = u1 + u_temp;
             
             %----------the value here are super important-------------%
-            k          = [0.02,0.015,4+2*rand(1),2*(1+1*rand(1))];
-            v_temp     = localDistort(y,x,pointCoord(1),pointCoord(2),k);
-            v1          = v1 + sign(randn(1))*v_temp;
+            if is_close_to_ray_far
+                k      = [0.04,0.03,1+1*rand(1),0.4*(1+1*rand(1))];
+            else
+                k      = [0.04,0.03,1+1*rand(1),1*(1+1*rand(1))];
+            end
+            v_temp     = localDistort(y,x,pointCoord(2),pointCoord(1),k);
+            v1         = v1 + sign(randn(1))*v_temp;
         end
     end
 end
@@ -433,7 +535,7 @@ parfor z = 1:sizeImEnlarge(3)
     
     [x_grid,y_grid]      = ndgrid(1:sizeImEnlarge(1),1:sizeImEnlarge(2));
     v_all_raycell = rayCell_shrinking_spruce(...
-        Params,yVector,sizeImEnlarge,raycellWidth,raycellXindAll,rayHeight,cellR-1,z);
+        Params,yVector,sizeImEnlarge,raycellWidth,raycellXindAll_update,v,rayHeight,cellR-1,z);
     
     u_compress_Mat = repmat(compress_all_validSub,1,sizeImEnlarge(2));
     x_interp = x_grid+u+u_compress_Mat;
@@ -443,8 +545,8 @@ parfor z = 1:sizeImEnlarge(3)
     imInterp = reshape(Vq,sizeImEnlarge(1:2));
     
     imInterp(isnan(imInterp)) = 0;
-    imInterp(imInterp<0)      = 0;
-    imInterp(imInterp>0)    = 255;
+    % imInterp(imInterp<0)      = 0;
+    % imInterp(imInterp>0)    = 255;
     ImgTemp           = uint8(imInterp);
     
     imgName = fullfile(Folder_ImgSeries_LocalDist,FileNameAll{z});

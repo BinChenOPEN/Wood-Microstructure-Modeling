@@ -1,10 +1,10 @@
 clear, close all, clc,warning('off','all');
 %% set parameters
 % Volume structure size;
-sizeVolume    = [1500,1500,750];
+sizeVolume    = [300,2000,200];
 
 % The volume structrue is slightly enlarged for image interpolation
-extraSZ   = [200,400,150];
+extraSZ   = [150,200,100];
 sizeImEnlarge = sizeVolume+extraSZ; % The simulated structure is a bit larger than the expected one.
 % The extra region will be removed afterwards.
 SaveFolder = 'SaveBirch/'; % Folder to save the data
@@ -30,7 +30,7 @@ rayCellLength      = 62; % ray cell length along radial direction
 % ray cell disturbance
 rayCell_variance   = 15; % ray cell length deviation along radial direction
 cellEndThick       = 4;  % End of cell wall thickness along L direction
-cellWallThick      = 4;  % Cell wall thickness
+cellWallThick      = 2;  % Cell wall thickness
 isExistVessel      = 1;  % Include vessels, 1: with vessel, 0: no vessel
 isExistRayCell     = 1;  % Is there any ray cells, 1: exist ray cells; 0: no ray cell
 % vessel wall thickness is thicker than general cell wall, 0 means the
@@ -118,7 +118,7 @@ if 0
 end
 
 % location of ray cells along T direction.
-raycell_linspace = 20:raySpace:length(yVector)-10;
+raycell_linspace = 10:raySpace:length(yVector)-10;
 if isExistRayCell
     raycellXindAll = raycell_linspace+rand(1,length(raycell_linspace))*10-5;
     raycellXindAll = floor(raycellXindAll./2)*2+1;
@@ -137,7 +137,7 @@ Vessel_all = [x_rand_all,y_rand_all];
 
 %% tune with location of the vessels. The vessels should not be too close
 % Remove some vessel that too close to the other vessels
-for i = 1:length(Vessel_all)
+for i = 1:size(Vessel_all,1)
     Vessel_all_temp = Vessel_all(i,:);
     %     Vessel_all_temp(i,:) = [];
     Vessel_all_dist =  Vessel_all-Vessel_all_temp;
@@ -156,7 +156,7 @@ Vessel_all(find(Vessel_all(:,1)==0),:) = [];
 % The vessels should not be too close to the ray cells regions
 m = 0;
 Vessel =[];
-for i = 1:length(Vessel_all)
+for i = 1:size(Vessel_all,1)
     t = 0;
     if isExistRayCell
         for j = 1:length(raycellXindAll)
@@ -176,7 +176,7 @@ Vessel_all = Vessel;
 % The vessels are extended. Some vessels are extended to be
 % double-vessel cluster, some are triple-vessel clusters.
 Vessel_all_extend = [];
-for i = 1:length(Vessel_all)
+for i = 1:size(Vessel_all,1)
     
     Vessel_all_temp = Vessel_all(i,:);
     Vessel_all_dist = Vessel_all-Vessel_all_temp;
@@ -224,8 +224,8 @@ Vessel_all = Vessel_all_extend;
 % two conditions
 m = 0;
 Vessel =[];
-if isExistVessel
-    for i = 1:length(Vessel_all)
+if isExistVessel && size(Vessel_all,1)>1
+    for i = 1:size(Vessel_all,1)
         t = 0;
         if isExistRayCell
             for j = 1:length(raycellXindAll)
@@ -340,9 +340,32 @@ if isExistRayCell && ~isempty(keepRayCell)
 else
     skipFiberColumn = [];
 end
+
+raycellXind_all_all = [];
+if length(raycellWidth) >= 1
+    for t = 1:length(raycellXind_all)
+        raycellXind_all_all = [raycellXind_all_all,raycellXind_all{t}];
+    end
+end
+
 for i = 2:2:length(xVector)-2
     for j = 2:2:length(yVector)-2
         if isempty(find(skipFiberColumn == j))
+
+
+            if min(abs(j-raycellXind_all_all)) <=4
+                is_close_to_ray = 1;
+            else
+                is_close_to_ray = 0;
+            end
+
+            if min(abs(j-raycellXind_all_all)) <=8
+                is_close_to_ray_far = 1;
+            else
+                is_close_to_ray_far = 0;
+            end
+
+
             t = t+1;
             
             % To control the length of the fibers
@@ -409,16 +432,17 @@ for i = 2:2:length(xVector)-2
                     inElipse2      = (regionCellx-C_elipse(3)).^2./(C_elipse(1)-Thickness_all(ind,iSlice)-skipCellThick).^2 + ...
                         (regionCelly-C_elipse(4)).^2./(C_elipse(2)-Thickness_all(ind,iSlice)-skipCellThick).^2;
                     %                 regionCell     = zeros(length(regionCellindx),length(regionCellindy));
-                    regionCell     = ones(length(regionCellindx),length(regionCellindy),'uint8');
+                    regionCell     = ones(length(regionCellindx),length(regionCellindy),'double');
                     if isempty(find(iSlice==fiberEnd))
                         % if this slice is not the end of this cell
                         % inside the lumen, it should be black
-                        regionCell(find((inElipse2<=1))) = 0;
+                        regionCell = 1./(1+exp(-(inElipse2-1)/0.05));
+                        % regionCell(find((inElipse2<=1))) = 0;
                     else
                         % if this slice is the end of this cell,
                         % all points should be white
                     end
-                    volImgRef(regionCellindx,regionCellindy,iSlice) = volImgRef(regionCellindx,regionCellindy,iSlice).*regionCell;
+                    volImgRef(regionCellindx,regionCellindy,iSlice) = uint8(double(volImgRef(regionCellindx,regionCellindy,iSlice)).*regionCell);
                 end
             end
             
@@ -485,26 +509,42 @@ for i = 2:2:length(xVector)-1
                         % Make sure the point is in the image
                         if t1>0 && t1<sizeImEnlarge(1) && t2>0 && t2<sizeImEnlarge(2)
                             
-                            inElipse1 = (t1-C_elipse(3))^2/C_elipse(1)^2 + (t2-C_elipse(4))^2/C_elipse(2)^2;
-                            inElipse2 = (t1-C_elipse(3))^2/(C_elipse(1)-Thickness_all(ind,iSlice)-vesselThicker)^2 + ...
-                                (t2-C_elipse(4))^2/(C_elipse(2)-Thickness_all(ind,iSlice)-vesselThicker)^2;
+                            inElipse0 = (t1-C_elipse(3))^2/C_elipse(1)^2 + (t2-C_elipse(4))^2/C_elipse(2)^2;
+                            inElipse1 = (t1-C_elipse(3))^2/(C_elipse(1)-(Thickness_all(ind,iSlice)+vesselThicker)*4/3)^2 ...
+                                + (t2-C_elipse(4))^2/(C_elipse(2)-(Thickness_all(ind,iSlice)+vesselThicker)*1)^2;
+
+                            inElipse2 = (t1-C_elipse(3))^2/(C_elipse(1)-(Thickness_all(ind,iSlice)+vesselThicker)*5/3)^2 + ...
+                                (t2-C_elipse(4))^2/(C_elipse(2)-(Thickness_all(ind,iSlice)+vesselThicker)*5/3)^2;
                             
-                            if inElipse1<=1 && inElipse2>=1
-                                % on the vessel wall, all points should be
-                                % white
-                                volImgRef(t1,t2,iSlice) = 255;
-                            else
-                                % inside the vessel, all points should be
-                                % black
-                                
-                                if inElipse2 < 1
-                                    if isempty(find(iSlice==vesselEnd))
-                                        volImgRef(t1,t2,iSlice) = 0;
-                                    else
-                                        volImgRef(t1,t2,iSlice) = 255;
-                                    end
-                                end
+
+
+                            if inElipse1<=1
+                                volImgRef(t1,t2,iSlice) = 1./(1+exp(-(inElipse2-1)/0.05))*255;
+                            % else
+                            % else
+                            %     volImgRef(t1,t2,iSlice) = 1./(1+exp(-(inElipse1-1)/0.05))*volImgRef(t1,t2,iSlice);
                             end
+
+
+
+                            % if inElipse1<=1 && inElipse2>=1
+                            %     % on the vessel wall, all points should be
+                            %     % white
+                            %     % volImgRef(t1,t2,iSlice) = 1./(1+exp(-(inElipse2-1)/0.05));
+                            %     volImgRef(t1,t2,iSlice) = 255;
+                            % else
+                            %     % inside the vessel, all points should be
+                            %     % black
+                            % 
+                            %     if inElipse2 < 1
+                            %         if isempty(find(iSlice==vesselEnd))
+                            %             volImgRef(t1,t2,iSlice) = 1./(1+exp(-(inElipse2-1)/0.05));
+                            %             % volImgRef(t1,t2,iSlice) = 0;
+                            %         else
+                            %             volImgRef(t1,t2,iSlice) = 255;
+                            %         end
+                            %     end
+                            % end
                         end
                     end
                 end
@@ -571,6 +611,19 @@ v1     = zeros(sizeImEnlarge(1:2));
 t      = 0;
 for i = 2:2:length(xVector)-1
     for j = 2:2:length(yVector)-1
+        if min(abs(j-raycellXind_all_all)) <=4
+            is_close_to_ray = 1;
+        else
+            is_close_to_ray = 0;
+        end
+
+        if min(abs(j-raycellXind_all_all)) <=8
+            is_close_to_ray_far = 1;
+        else
+            is_close_to_ray_far = 0;
+        end
+
+
         t = t+1;
         i1 = i;
         pointCoord = [];
@@ -590,10 +643,19 @@ for i = 2:2:length(xVector)-1
                 pointCoord = [xGrid_all(indxPt,1),yGrid_all(indxPt,1)];
                 
                 %----------the value here are super important-------------%
-                k          = [0.08,0.06,2+rand(1),1*(1+rand(1))];
+                if is_close_to_ray
+                    k          = [0.08,0.06,2+rand(1),0.3*(1+rand(1))];
+                else
+                    k          = [0.08,0.06,2+rand(1),1*(1+rand(1))];
+                end
                 u_temp     = localDistort(x,y,pointCoord(1),pointCoord(2),k);
                 %----------the value here are super important-------------%
-                k          = [0.08,0.06,2+rand(1),1*(1+rand(1))];
+                
+                if is_close_to_ray
+                    k          = [0.08,0.06,2+rand(1),0.3*(1+rand(1))];
+                else
+                    k          = [0.08,0.06,2+rand(1),1*(1+rand(1))];
+                end
                 v_temp     = localDistort(y,x,pointCoord(2),pointCoord(1),k);
                 signTemp   = sign(randn(1));
                 u          = u - signTemp*u_temp;
@@ -607,13 +669,20 @@ for i = 2:2:length(xVector)-1
                     indxPt     = length(xVector)*(j-1)+i1;
                     pointCoord = [xGrid_all(indxPt,1),yGrid_all(indxPt,1)];
                     %----------the value here are super important-------------%
-                    k          = [0.04,0.03,1*(1+rand(1)),2+1*rand(1)];
+                    if is_close_to_ray_far
+                        k          = [0.06,0.055,2,3+5*rand(1)];
+                    else
+                        k          = [0.06,0.055,2,15];
+
+                       % k          = [0.04,0.03,2,3+2*rand(1)];
+                    end
+                    
                     u_temp     = localDistort(x,y,pointCoord(1),pointCoord(2),k);
                     v_temp     = localDistort(y,x,pointCoord(2),pointCoord(1),k);
                     
-                    signDisp   = sign(randn(1));
-                    u          = u - signDisp* u_temp;
-                    %                 v          = v - signDisp* v_temp;
+                    % signDisp   = sign(randn(1));
+                    u          = u + u_temp;
+                    v          = v + v_temp;
                 end
             end
         end
@@ -625,14 +694,23 @@ for i = 2:2:length(xVector)-1
             pointCoord = [xGrid_all(indxPt,1),yGrid_all(indxPt,1)];
             
             if randn(1)>0
+                
                 %----------the value here are super important-------------%
-                k          = [0.01,0.008,1.5*(1+rand(1)),1*(1+1*rand(1))];
+                if is_close_to_ray_far
+                    k          = [0.01,0.008,1.5*(1+rand(1)),0.2*(1+1*rand(1))];
+                else
+                    k          = [0.01,0.008,1.5*(1+rand(1)),0.5*(1+1*rand(1))];
+                end
                 u_temp     = localDistort(x,y,pointCoord(1),pointCoord(2),k);
                 
                 u1          = u1 + sign(randn(1))*u_temp;
             else
                 %----------the value here are super important-------------%
-                k          = [0.01,0.008,1.5+1.5*rand(1),1*(1+1*rand(1))];
+                if is_close_to_ray_far
+                    k          = [0.01,0.008,1.5*(1+rand(1)),0.2*(1+1*rand(1))];
+                else
+                    k          = [0.01,0.008,1.5*(1+rand(1)),0.5*(1+1*rand(1))];
+                end
                 v_temp     = localDistort(y,x,pointCoord(2),pointCoord(1),k);
                 v1          = v1 + sign(randn(1))*v_temp;
             end
@@ -673,7 +751,8 @@ if writeLocalDeformData
     mkdir(Folder_dips_LocalDistVRay)
 end
 %% Impose local distortion by image interpolation
-parfor (z = 1:sizeImEnlarge(3),4)
+for z = 1:sizeImEnlarge(3)
+% parfor (z = 1:sizeImEnlarge(3),4)
     imgName = fullfile(Folder_ImgSeries,FileNameAll{z});
     ImCover = double(imread(imgName));
     [x_grid,y_grid]      = ndgrid(1:sizeImEnlarge(1),1:sizeImEnlarge(2));
@@ -691,9 +770,9 @@ parfor (z = 1:sizeImEnlarge(3),4)
     Vq = F(x_grid(:),y_grid(:));
     
     imInterp = reshape(Vq,sizeImEnlarge(1:2));
-    imInterp(isnan(imInterp)) = 0;
-    imInterp(imInterp<127)    = 0;
-    imInterp(imInterp>=127)   = 255;
+    % imInterp(isnan(imInterp)) = 0;
+    % imInterp(imInterp<127)    = 0;
+    % imInterp(imInterp>=127)   = 255;
     ImgTemp                   = uint8(imInterp);
     
     if writeLocalDeformData

@@ -115,17 +115,14 @@ for i_raycolumn = raycellXind(1)
                     if find(i_valid == i)
                         for j = cell_neighPt(2,1):cell_neighPt(2,2)
                             for s = cell_neighPt(3,1):cell_neighPt(3,2)
-                                if (j-cell_center(i,2))^2/(cell_r(i,1)-thickInterp_C(i))^2 ...
-                                            + (s-cell_center(i,3))^2/(cell_r(i,2)-thickInterp_C(i))^2 <1
-                                            volImgRef_final(i,j,s) = 0;
-                                else
-                                    if ((j-cell_center(i,2))^2/(cell_r(i,1)-thickInterp_C(i)*2/3)^2 ...
-                                            + (s-cell_center(i,3))^2/(cell_r(i,2)-thickInterp_C(i))^2) >=1 ...
-                                        && ((j-cell_center(i,2))^2/(cell_r(i,1))^2 ...
-                                            + (s-cell_center(i,3))^2/(cell_r(i,2))^2) <=1
-                                        volImgRef_final(i,j,s) = 255;
-                                    end
+                                inner_elipse = (j-cell_center(i,2)).^2./(cell_r(i,1)-thickInterp_C(i))^2 ...
+                                            + (s-cell_center(i,3)).^2./(cell_r(i,2)-thickInterp_C(i)).^2;
 
+                                outer_elipse = (j-cell_center(i,2)).^2./(cell_r(i,1)).^2 ...
+                                            + (s-cell_center(i,3)).^2./(cell_r(i,2)).^2;
+                                
+                                if outer_elipse<1
+                                    volImgRef_final(i,j,s) = uint8(1./(1+exp(-(inner_elipse-1)/0.05))*255);
                                 end
                             end
                         end
