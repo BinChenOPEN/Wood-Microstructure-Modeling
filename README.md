@@ -44,7 +44,11 @@ A generated microstructure of Spruce
 ## Contact
 Email: binchen@kth.se
 
+## Acknowledgement
+The authors gratefully acknowledge the support from Knut and Alice Wallenberg foundation (KAW 2021.0311) and the EU HORIZON AI-TRANSPWOOD (AI-Driven Multiscale Methodology to Develop Transparent Wood as Sustainable Functional Material) project, Grant no. 101138191, co-funded by the European Union. 
+
 ## Citation
 Please cite our work if you use any code in this project:  
-[Chen, Bin, et al. "A distortion-map-based method for morphology generation in multi-phase materials-application to wood." Composites Science and Technology 244 (2023): 110262.](https://www.sciencedirect.com/science/article/pii/S0266353823003561)  
+[Chen, Bin, et al. "A distortion-map-based method for morphology generation in multi-phase materials-application to wood." Composites Science and Technology 244 (2023): 110262.](https://www.sciencedirect.com/science/article/pii/S0266353823003561).
+
 
